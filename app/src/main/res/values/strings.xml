@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">校园LBS</string>
+    <string name="first_item">活动推荐</string>
+    <string name="first_information">点击查看活动信息</string>
+    <string name="second_item">空教室查询</string>
+    <string name="second_information">点击查看空教室信息</string>
+    <string name="third_item">校园新闻</string>
+    <string name="third_information">点击查看校园新闻</string>
+    <string name="main">我</string>
+    <string name="person">个人主页</string>
+
+    <string name="drawer_open">Menu open</string>
+    <string name="drawer_close">Menu closed</string>
+    <string name="Team">软件信息</string>
+    <string name="action_github">github</string>
 </resources>

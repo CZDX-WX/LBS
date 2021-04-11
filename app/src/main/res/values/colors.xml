@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Teal 600 -->
+    <color name="color_primary">#696969</color>
+    <!-- Teal 800 -->
+    <color name="color_primary_dark">#696969</color>
+    <!-- Cyan A200 -->
+    <color name="color_accent">#18FFFF</color>
 </resources>
