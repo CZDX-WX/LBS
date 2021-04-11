@@ -1,5 +1,5 @@
 # LBS
-TeamWork  
+1. 高德地图引入so库时：targetSdkVersion<=28，否则报错
 
-大作业还没开头 啊啊啊啊啊啊   
+
 
