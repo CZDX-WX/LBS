@@ -3,12 +3,16 @@ package com.czdxwx.lbs;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +25,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
@@ -28,22 +34,59 @@ import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
+import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.route.BusRouteResult;
+import com.amap.api.services.route.DriveRouteResult;
+import com.amap.api.services.route.RideRouteResult;
+import com.amap.api.services.route.RouteSearch;
+import com.amap.api.services.route.WalkRouteResult;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.heinrichreimersoftware.materialdrawer.DrawerView;
 import com.heinrichreimersoftware.materialdrawer.structure.DrawerHeaderItem;
 import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
 import com.heinrichreimersoftware.materialdrawer.structure.DrawerProfile;
 
-public class MainActivity extends AppCompatActivity implements AMap.OnMyLocationChangeListener{
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
+
+import static com.czdxwx.lbs.MyApplication.getContext;
+
+public class MainActivity extends AppCompatActivity implements AMapLocationListener,AMap.OnMyLocationChangeListener, AMap.OnMapClickListener,
+        AMap.OnMarkerClickListener, AMap.OnInfoWindowClickListener, AMap.InfoWindowAdapter, RouteSearch.OnRouteSearchListener {
+    //Logcat TAG
+    private String TAG = "test";
+    //悬浮框按钮
+    private FloatingActionMenu menuGrey;
+    private FloatingActionButton fab1;
+    private FloatingActionButton fab2;
+    private FloatingActionButton fab3;
+    private FloatingActionButton fab4;
+    //动画处理器
+    private Handler mUiHandler = new Handler();
+    //toolbar
+    private Toolbar toolbar;
+    //抽屉布局
     private DrawerView drawer;
     private ActionBarDrawerToggle drawerToggle;
-    //定位
-    private final MyLocationStyle myLocationStyle= new MyLocationStyle();;
     private MapView mapView;
     //地图
     private AMap aMap;
-
+    private Context mContext;
+    //定位
+    private MyLocationStyle myLocationStyle;
+    //路径规划
+    private RouteSearch mRouteSearch;
+    private WalkRouteResult mWalkRouteResult;
+    //起点
+    private LatLonPoint mStartPoint = new LatLonPoint(39.942295, 116.335891);//起点，116.335891,39.942295
+    //终点
+    private LatLonPoint mEndPoint = new LatLonPoint(39.995576, 116.481288);//终点，116.481288,39.995576
+    private final int ROUTE_TYPE_WALK = 3;
     // 西南坐标(纬度，经度)
     private static final LatLng southwestLatLng = new LatLng(31.681177, 119.95012);
     // 东北坐标
@@ -51,18 +94,28 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mapView = findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
 
-        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
-        drawer = findViewById(R.id.drawer);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-
+        toolbar = findViewById(R.id.toolbar);
         //换标题栏
         setSupportActionBar(toolbar);
+
+        //初始化抽屉布局
+        initDrawer();
+        //初始化地图
+        initMap();
+        //初始化悬浮框
+        initFab();
+    }
+
+    //初始化抽屉
+    private void initDrawer() {
+        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
+        drawer = findViewById(R.id.drawer);
         //抽屉开关
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
             public void onDrawerClosed(View view) {
@@ -120,8 +173,8 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
             }
         });
 
+        //底部软件信息
         drawer.addFixedItem(new DrawerItem().setRoundedImage((BitmapDrawable) ContextCompat.getDrawable(this, R.drawable.team), DrawerItem.SMALL_AVATAR).setTextPrimary(getString(R.string.Team)));
-
 
         drawer.setOnFixedItemClickListener(new DrawerItem.OnItemClickListener() {
             @Override
@@ -148,10 +201,54 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
                 Toast.makeText(MainActivity.this, "暂时没啥功能", Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-        //初始化地图
-        initMap();
-
+    //fab初始化
+    private void initFab() {
+        menuGrey = findViewById(R.id.menu_grey);
+        fab1 = findViewById(R.id.night);
+        fab2 = findViewById(R.id.satelite);
+        fab3 = findViewById(R.id.navigation);
+        fab4 = findViewById(R.id.base);
+        //点击外面关闭
+        menuGrey.setClosedOnTouchOutside(true);
+        //默认隐藏
+        menuGrey.hideMenuButton(false);
+        //夜间模式
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aMap.setMapType(AMap.MAP_TYPE_NIGHT);//夜景地图模式
+            }
+        });
+        //卫星模式
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aMap.setMapType(AMap.MAP_TYPE_SATELLITE);// 卫星地图模式
+            }
+        });
+        //导航模式
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aMap.setMapType(AMap.MAP_TYPE_NAVI);//导航地图模式
+            }
+        });
+        //矢量模式（基本模式）
+        fab4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aMap.setMapType(AMap.MAP_TYPE_NORMAL);// 矢量地图模式
+            }
+        });
+        //延迟展示fab
+        mUiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                menuGrey.showMenuButton(true);
+            }
+        }, 1000);
     }
 
 
@@ -201,7 +298,12 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         if (aMap == null) {
             aMap = mapView.getMap();
             //定位
-            setUpMap();
+            myLocationStyle = new MyLocationStyle();
+            aMap.setMyLocationStyle(myLocationStyle);
+            // 设置默认定位按钮是否显示
+            aMap.getUiSettings().setMyLocationButtonEnabled(true);
+            // 设置为true表示显示定位层并可触发定位，false表示隐藏定位层并不可触发定位，默认是false
+            aMap.setMyLocationEnabled(true);
         }
 
         //添加两个标记点
@@ -211,37 +313,49 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         aMap.moveCamera(CameraUpdateFactory.zoomTo(8f));
         //设置限制区域
         LatLngBounds latLngBounds = new LatLngBounds(southwestLatLng, northeastLatLng);
-        aMap.setMapStatusLimits(latLngBounds);
-        //设置SDK 自带定位消息监听
+//        aMap.setMapStatusLimits(latLngBounds);
+
+        // 定位、但不会移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。
+        aMap.setMyLocationStyle(myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_MAP_ROTATE));
+        //设置回调
+//        aMap.setOnMyLocationChangeListener(this);
         aMap.setOnMyLocationChangeListener(this);
     }
 
-    /**
-     * 设置一些amap的属性
-     */
-    private void setUpMap() {
-
-        aMap.setMyLocationStyle(myLocationStyle);
-        // 设置默认定位按钮是否显示
-        aMap.getUiSettings().setMyLocationButtonEnabled(true);
-        // 设置为true表示显示定位层并可触发定位，false表示隐藏定位层并不可触发定位，默认是false
-        aMap.setMyLocationEnabled(true);
-        // 定位、但不会移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。
-        aMap.setMyLocationStyle(myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER));
-        //设置回调
-        aMap.setOnMyLocationChangeListener(this);
-
-
+    //声明定位回调监听器
+    @Override
+    public void onLocationChanged(AMapLocation aMapLocation) {
+    //获取位置结果,判断AMapLocation对象不为空，当定位错误码类型为0时定位成功
+        if (aMapLocation.getErrorCode() == 0) {
+            Log.d("success", "定位成功测试");
+            //获取纬度
+            aMapLocation.getLatitude();
+            //获取经度
+            aMapLocation.getLongitude();
+            //获取地址
+            aMapLocation.getAddress();
+            //获取准确度信息
+            aMapLocation.getAccuracy();
+            //获取定位结果来源
+            aMapLocation.getLocationType();
+            onLocationChanged(aMapLocation);
+        } else {
+            Toast.makeText(getContext(), "定位失败", Toast.LENGTH_SHORT).show();
+            //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+            Log.e("AmapError", "location Error, ErrCode:"
+                    + aMapLocation.getErrorCode() + ", errInfo:"
+                    + aMapLocation.getErrorInfo());
+        }
     }
 
     @Override
     //回调
     public void onMyLocationChange(Location location) {
         // 定位回调监听
-        if(location != null) {
+        if (location != null) {
             Log.e("amap", "onMyLocationChange 定位成功， lat: " + location.getLatitude() + " lon: " + location.getLongitude());
             Bundle bundle = location.getExtras();
-            if(bundle != null) {
+            if (bundle != null) {
                 int errorCode = bundle.getInt(MyLocationStyle.ERROR_CODE);
                 String errorInfo = bundle.getString(MyLocationStyle.ERROR_INFO);
                 // 定位类型，可能为GPS WIFI等，具体可以参考官网的定位SDK介绍
@@ -251,16 +365,15 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
                 errorInfo
                 locationType
                 */
-                Log.e("amap", "定位信息， code: " + errorCode + " errorInfo: " + errorInfo + " locationType: " + locationType );
+                Log.e("amap", "定位信息， code: " + errorCode + " errorInfo: " + errorInfo + " locationType: " + locationType);
             } else {
                 Log.e("amap", "定位信息， bundle is null ");
-
             }
-
         } else {
             Log.e("amap", "定位失败");
         }
     }
+
     /**
      * 方法必须重写
      */
@@ -296,5 +409,51 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         super.onDestroy();
         mapView.onDestroy();
     }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
+    }
+
+    @Override
+    public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+
+    }
+
+    @Override
+    public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
+
+    }
+
+    @Override
+    public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+
+    }
+
+    @Override
+    public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+
+    }
+
 
 }
