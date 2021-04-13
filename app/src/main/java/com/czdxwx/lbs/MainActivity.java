@@ -1,6 +1,7 @@
 package com.czdxwx.lbs;
 
 
+import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
@@ -9,19 +10,25 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -54,9 +61,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
+import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 import static com.czdxwx.lbs.MyApplication.getContext;
 
-public class MainActivity extends AppCompatActivity implements AMapLocationListener,AMap.OnMyLocationChangeListener, AMap.OnMapClickListener,
+public class MainActivity extends AppCompatActivity implements AMap.OnMyLocationChangeListener, AMap.OnMapClickListener,
         AMap.OnMarkerClickListener, AMap.OnInfoWindowClickListener, AMap.InfoWindowAdapter, RouteSearch.OnRouteSearchListener {
     //Logcat TAG
     private String TAG = "test";
@@ -67,11 +75,12 @@ public class MainActivity extends AppCompatActivity implements AMapLocationListe
     private FloatingActionButton fab3;
     private FloatingActionButton fab4;
     //动画处理器
-    private Handler mUiHandler = new Handler();
+    private final Handler mUiHandler = new Handler();
     //toolbar
     private Toolbar toolbar;
     //抽屉布局
     private DrawerView drawer;
+    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
     private MapView mapView;
     //地图
@@ -91,6 +100,31 @@ public class MainActivity extends AppCompatActivity implements AMapLocationListe
     private static final LatLng southwestLatLng = new LatLng(31.681177, 119.95012);
     // 东北坐标
     private static final LatLng northeastLatLng = new LatLng(31.687828, 119.965239);
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    void Request() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d(TAG, String.valueOf(requestCode));
+        switch(requestCode) {
+//            case INTERNET:
+//                if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    // TODO request success
+//                }
+//                break;
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements AMapLocationListe
 
     //初始化抽屉
     private void initDrawer() {
-        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
+        drawerLayout = findViewById(R.id.drawerLayout);
         drawer = findViewById(R.id.drawer);
         //抽屉开关
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
@@ -128,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements AMapLocationListe
         };
 
         drawerLayout.setStatusBarBackgroundColor(ContextCompat.getColor(this, R.color.color_primary_dark));
+
         drawerLayout.addDrawerListener(drawerToggle);
         //默认关闭
         drawerLayout.closeDrawer(drawer);
@@ -320,32 +355,6 @@ public class MainActivity extends AppCompatActivity implements AMapLocationListe
         //设置回调
 //        aMap.setOnMyLocationChangeListener(this);
         aMap.setOnMyLocationChangeListener(this);
-    }
-
-    //声明定位回调监听器
-    @Override
-    public void onLocationChanged(AMapLocation aMapLocation) {
-    //获取位置结果,判断AMapLocation对象不为空，当定位错误码类型为0时定位成功
-        if (aMapLocation.getErrorCode() == 0) {
-            Log.d("success", "定位成功测试");
-            //获取纬度
-            aMapLocation.getLatitude();
-            //获取经度
-            aMapLocation.getLongitude();
-            //获取地址
-            aMapLocation.getAddress();
-            //获取准确度信息
-            aMapLocation.getAccuracy();
-            //获取定位结果来源
-            aMapLocation.getLocationType();
-            onLocationChanged(aMapLocation);
-        } else {
-            Toast.makeText(getContext(), "定位失败", Toast.LENGTH_SHORT).show();
-            //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
-            Log.e("AmapError", "location Error, ErrCode:"
-                    + aMapLocation.getErrorCode() + ", errInfo:"
-                    + aMapLocation.getErrorInfo());
-        }
     }
 
     @Override
