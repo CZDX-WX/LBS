@@ -1,8 +1,9 @@
-package com.czdxwx.lbs.activity;
+package com.czdxwx.lbs.LoginActivity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -12,6 +13,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.czdxwx.lbs.R;
 
@@ -25,11 +34,23 @@ public class LoginActivity extends AppCompatActivity {
     private boolean needCheckBackLocation = false;
     //如果设置了target > 28，需要增加这个权限，否则不会弹出"始终允许"这个选择框
     private static String BACK_LOCATION_PERMISSION = "android.permission.ACCESS_BACKGROUND_LOCATION";
+
+    private ImageView imageView;
+    private TextView textView;
+
+    private EditText student_number;
+    private EditText password;
+    private Button btn_sign_up;
+    private Button btn_sign_in;
+    private TextView tv_forget;
+    private int count = 0;
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
+        //权限
         if (Build.VERSION.SDK_INT > 28
                 && getApplicationContext().getApplicationInfo().targetSdkVersion > 28) {
             needPermissions = new String[]{
@@ -42,6 +63,78 @@ public class LoginActivity extends AppCompatActivity {
             };
             needCheckBackLocation = true;
         }
+
+        //隐藏标题栏
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        setContentView(R.layout.activity_login);
+        student_number=findViewById(R.id.student_number);
+        password=findViewById(R.id.password);
+        btn_sign_up=findViewById(R.id.btn_sign_up);
+        btn_sign_up.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i=new Intent();
+                i.setAction("android.intent.action.test");
+                startActivity(i);
+            }
+        });
+        btn_sign_in=findViewById(R.id.btn_sign_in);
+        btn_sign_in.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i=new Intent();
+                i.setAction("android.intent.action.app");
+                startActivity(i);
+            }
+        });
+        tv_forget=findViewById(R.id.tv_forget);
+        tv_forget.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(LoginActivity.this, "此功能没开发", Toast.LENGTH_LONG).show();
+            }
+        });
+        imageView = findViewById(R.id.imageView);
+        textView = findViewById(R.id.textView);
+
+        imageView.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            public void onSwipeTop() {
+
+            }
+
+            public void onSwipeRight() {
+                if (count == 0) {
+                    imageView.setImageResource(R.drawable.good_night_img);
+                    textView.setText("Night");
+                    count = 1;
+                } else {
+                    imageView.setImageResource(R.drawable.good_morning_img);
+                    textView.setText("Morning");
+                    count = 0;
+                }
+            }
+
+            public void onSwipeLeft() {
+                if (count == 0) {
+                    imageView.setImageResource(R.drawable.good_night_img);
+                    textView.setText("Night");
+                    count = 1;
+                } else {
+                    imageView.setImageResource(R.drawable.good_morning_img);
+                    textView.setText("Morning");
+                    count = 0;
+                }
+            }
+
+            public void onSwipeBottom() {
+            }
+
+        });
+
+
     }
 
 
@@ -82,10 +175,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * @param
-     * @since 2.5.0
-     */
+
     @TargetApi(23)
     private void checkPermissions(String... permissions) {
         try{
@@ -110,10 +200,6 @@ public class LoginActivity extends AppCompatActivity {
 
     /**
      * 获取权限集中需要申请权限的列表
-     *
-     * @param permissions
-     * @return
-     * @since 2.5.0
      */
     @TargetApi(23)
     private List<String> findDeniedPermissions(String[] permissions) {

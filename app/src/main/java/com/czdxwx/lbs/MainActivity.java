@@ -4,11 +4,13 @@ package com.czdxwx.lbs;
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Criteria;
 import android.location.Location;
@@ -22,6 +24,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -37,6 +42,7 @@ import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
+import com.amap.api.maps.UiSettings;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
@@ -44,12 +50,20 @@ import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.model.animation.Animation;
+import com.amap.api.maps.model.animation.ScaleAnimation;
+import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.route.BusRouteResult;
 import com.amap.api.services.route.DriveRouteResult;
 import com.amap.api.services.route.RideRouteResult;
 import com.amap.api.services.route.RouteSearch;
+import com.amap.api.services.route.WalkPath;
 import com.amap.api.services.route.WalkRouteResult;
+import com.czdxwx.lbs.overlay.WalkRouteOverlay;
+import com.czdxwx.lbs.route.WalkRouteDetailActivity;
+import com.czdxwx.lbs.utils.AMapUtil;
+import com.czdxwx.lbs.utils.ToastUtil;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.heinrichreimersoftware.materialdrawer.DrawerView;
@@ -64,8 +78,8 @@ import java.util.Locale;
 import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 import static com.czdxwx.lbs.MyApplication.getContext;
 
-public class MainActivity extends AppCompatActivity implements AMap.OnMyLocationChangeListener, AMap.OnMapClickListener,
-        AMap.OnMarkerClickListener, AMap.OnInfoWindowClickListener, AMap.InfoWindowAdapter, RouteSearch.OnRouteSearchListener {
+public class MainActivity extends AppCompatActivity implements AMap.OnMyLocationChangeListener, AMap.OnMapLongClickListener,
+        AMap.OnMarkerClickListener,AMap.OnInfoWindowClickListener, RouteSearch.OnRouteSearchListener {
     //Logcat TAG
     private String TAG = "test";
     //悬浮框按钮
@@ -80,78 +94,80 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     private Toolbar toolbar;
     //抽屉布局
     private DrawerView drawer;
-    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+
+    /*
+    地图
+     */
+
     private MapView mapView;
     //地图
     private AMap aMap;
+    //上下文
     private Context mContext;
     //定位
     private MyLocationStyle myLocationStyle;
+    // 西南坐标(纬度，经度)
+    private static final LatLng southwestLatLng = new LatLng(31.678003,119.943828);
+    // 东北坐标
+    private static final LatLng northeastLatLng = new LatLng(31.690411,119.968637);
+
+
+    /*
+    路径规划
+     */
+
+    private RelativeLayout mBottomLayout;
+    //底部文字描述
+    private TextView mRotueTimeDes, mRouteDetailDes;
     //路径规划
     private RouteSearch mRouteSearch;
+    //步行结果回调
     private WalkRouteResult mWalkRouteResult;
+    //标记点
+    private Marker marker=null;
     //起点
-    private LatLonPoint mStartPoint = new LatLonPoint(39.942295, 116.335891);//起点，116.335891,39.942295
+    private LatLonPoint mStartPoint =null;
     //终点
-    private LatLonPoint mEndPoint = new LatLonPoint(39.995576, 116.481288);//终点，116.481288,39.995576
+    private LatLonPoint mEndPoint = null;
+    //步行代号
     private final int ROUTE_TYPE_WALK = 3;
-    // 西南坐标(纬度，经度)
-    private static final LatLng southwestLatLng = new LatLng(31.681177, 119.95012);
-    // 东北坐标
-    private static final LatLng northeastLatLng = new LatLng(31.687828, 119.965239);
-
-
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    void Request() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        Log.d(TAG, String.valueOf(requestCode));
-        switch(requestCode) {
-//            case INTERNET:
-//                if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    // TODO request success
-//                }
-//                break;
-        }
-    }
+    // 搜索时进度条
+    private ProgressDialog progDialog = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = this.getApplicationContext();
         mapView = findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
 
-        toolbar = findViewById(R.id.toolbar);
-        //换标题栏
-        setSupportActionBar(toolbar);
 
-        //初始化抽屉布局
-        initDrawer();
         //初始化地图
         initMap();
         //初始化悬浮框
         initFab();
+        //初始化抽屉布局
+        initDrawer();
     }
 
     //初始化抽屉
     private void initDrawer() {
-        drawerLayout = findViewById(R.id.drawerLayout);
-        drawer = findViewById(R.id.drawer);
+        toolbar = findViewById(R.id.toolbar);
+        //换标题栏
+        setSupportActionBar(toolbar);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        drawer =findViewById(R.id.drawer);
         //抽屉开关
-        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open, R.string.drawer_close) {
+        drawerToggle = new ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                toolbar,
+                R.string.drawer_open,
+                R.string.drawer_close
+        ) {
             public void onDrawerClosed(View view) {
                 invalidateOptionsMenu();
             }
@@ -185,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
                 .setTextSecondary(getString(R.string.third_information))
         );
 
-
         //进入相关页面
         drawer.setOnItemClickListener(new DrawerItem.OnItemClickListener() {
             @Override
@@ -194,15 +209,21 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
                 switch (position) {
                     case 0:
                         //跳转到活动推荐页面
-
+                        Intent I1=new Intent();
+                        I1.setAction("android.intent.action.recommender");
+                        startActivity(I1);
                         break;
                     case 1:
                         //跳转到空教室查询页面
-
+                        Intent I2=new Intent();
+                        I2.setAction("android.intent.action.emptyClassroomEnquiry");
+                        startActivity(I2);
                         break;
                     case 2:
                         //跳转到校园新闻页面
-
+                        Intent I3=new Intent();
+                        I3.setAction("android.intent.action.news");
+                        startActivity(I3);
                         break;
                 }
             }
@@ -332,7 +353,14 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     private void initMap() {
         if (aMap == null) {
             aMap = mapView.getMap();
+            registerListener();
             //定位
+            mRouteSearch = new RouteSearch(this);
+            mRouteSearch.setRouteSearchListener(this);
+            mBottomLayout = findViewById(R.id.bottom_layout);
+
+            mRotueTimeDes = findViewById(R.id.firstline);
+            mRouteDetailDes = findViewById(R.id.secondline);
             myLocationStyle = new MyLocationStyle();
             aMap.setMyLocationStyle(myLocationStyle);
             // 设置默认定位按钮是否显示
@@ -348,18 +376,27 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         aMap.moveCamera(CameraUpdateFactory.zoomTo(8f));
         //设置限制区域
         LatLngBounds latLngBounds = new LatLngBounds(southwestLatLng, northeastLatLng);
-//        aMap.setMapStatusLimits(latLngBounds);
+        aMap.setMapStatusLimits(latLngBounds);
 
         // 定位、但不会移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。
-        aMap.setMyLocationStyle(myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_MAP_ROTATE));
+        aMap.setMyLocationStyle(myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER));
         //设置回调
-//        aMap.setOnMyLocationChangeListener(this);
         aMap.setOnMyLocationChangeListener(this);
+    }
+
+    /**
+     * 注册监听
+     */
+    private void registerListener() {
+        aMap.setOnMapLongClickListener(MainActivity.this);
+        aMap.setOnMarkerClickListener(MainActivity.this);
+        aMap.setOnInfoWindowClickListener(MainActivity.this);
     }
 
     @Override
     //回调
     public void onMyLocationChange(Location location) {
+        mStartPoint= new LatLonPoint(location.getLatitude(), location.getLongitude());
         // 定位回调监听
         if (location != null) {
             Log.e("amap", "onMyLocationChange 定位成功， lat: " + location.getLatitude() + " lon: " + location.getLongitude());
@@ -419,50 +456,164 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         mapView.onDestroy();
     }
 
+
     @Override
-    public View getInfoWindow(Marker marker) {
-        return null;
+    public void onInfoWindowClick(Marker m) {
+        mEndPoint=new LatLonPoint(m.getPosition().latitude,m.getPosition().longitude);
+        searchRouteResult(ROUTE_TYPE_WALK, RouteSearch.WalkDefault);
+        mapView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public View getInfoContents(Marker marker) {
-        return null;
-    }
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-
-    }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
+    //点击后开始导航
+    public boolean onMarkerClick(Marker arg0) {
+        marker.showInfoWindow();
         return false;
     }
 
+
     @Override
-    public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+    //地图上长按点击事件绘制maker
+    public void onMapLongClick(LatLng latLng) {
+        addMarker(aMap, latLng.latitude, latLng.longitude, latLng.toString());
+    }
+
+    //添加marker事件
+    private void addMarker(AMap map, double latitude, double longitude, String title) {
+        aMap.clear();
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(new LatLng(latitude, longitude))
+                .title("要去这里？")
+                .snippet("点击即可导航")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
+                .draggable(true);
+        marker = map.addMarker(markerOptions);
+        startGrowAnimation();
+    }
+
+    /**
+     * 地上生长的Marker动画
+     */
+    private void startGrowAnimation() {
+        if(marker != null) {
+            Animation animation = new ScaleAnimation(0,1,0,1);
+            animation.setInterpolator(new LinearInterpolator());
+            //整个移动所需要的时间
+            animation.setDuration(1000);
+            //设置动画
+            marker.setAnimation(animation);
+            //开始动画
+            marker.startAnimation();
+        }
+    }
+    /**
+     * 开始搜索路径规划方案
+     */
+    public void searchRouteResult(int routeType, int mode) {
+        if (mStartPoint == null) {
+            ToastUtil.show(mContext, "起点未设置");
+            return;
+        }
+        if (mEndPoint == null) {
+            ToastUtil.show(mContext, "终点未设置");
+        }
+
+        showProgressDialog();
+
+        final RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(mStartPoint, mEndPoint);
+
+        if (routeType == ROUTE_TYPE_WALK) {// 步行路径规划
+            RouteSearch.WalkRouteQuery query = new RouteSearch.WalkRouteQuery(fromAndTo);
+            mRouteSearch.calculateWalkRouteAsyn(query);// 异步路径规划步行模式查询
+        }
 
     }
 
-    @Override
-    public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
 
+    /**
+     * 步行路线搜索结果方法回调
+     */
+    @Override
+    public void onWalkRouteSearched(WalkRouteResult result, int errorCode) {
+        dissmissProgressDialog();
+        aMap.clear();// 清理地图上的所有覆盖物
+        if (errorCode == AMapException.CODE_AMAP_SUCCESS) {
+            if (result != null && result.getPaths() != null) {
+                if (result.getPaths().size() > 0) {
+                    mWalkRouteResult = result;
+                    final WalkPath walkPath = mWalkRouteResult.getPaths()
+                            .get(0);
+                    if (walkPath == null) {
+                        return;
+                    }
+                    WalkRouteOverlay walkRouteOverlay = new WalkRouteOverlay(
+                            this, aMap, walkPath,
+                            mWalkRouteResult.getStartPos(),
+                            mWalkRouteResult.getTargetPos());
+                    walkRouteOverlay.removeFromMap();
+                    walkRouteOverlay.addToMap();
+                    walkRouteOverlay.zoomToSpan();
+                    mBottomLayout.setVisibility(View.VISIBLE);
+                    int dis = (int) walkPath.getDistance();
+                    int dur = (int) walkPath.getDuration();
+                    String des = AMapUtil.getFriendlyTime(dur) + "(" + AMapUtil.getFriendlyLength(dis) + ")";
+                    mRotueTimeDes.setText(des);
+                    mRouteDetailDes.setVisibility(View.GONE);
+                    mBottomLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(mContext,
+                                    WalkRouteDetailActivity.class);
+                            intent.putExtra("walk_path", walkPath);
+                            intent.putExtra("walk_result",
+                                    mWalkRouteResult);
+                            startActivity(intent);
+                        }
+                    });
+                } else if (result != null && result.getPaths() == null) {
+                    ToastUtil.show(mContext, R.string.no_result);
+                }
+
+            } else {
+                ToastUtil.show(mContext, R.string.no_result);
+            }
+        } else {
+            ToastUtil.showerror(this.getApplicationContext(), errorCode);
+        }
+    }
+
+
+    /**
+     * 显示进度框
+     */
+    private void showProgressDialog() {
+        if (progDialog == null) {
+            progDialog = new ProgressDialog(this);
+        }
+        progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progDialog.setIndeterminate(false);
+        progDialog.setCancelable(true);
+        progDialog.setMessage("正在搜索");
+        progDialog.show();
+    }
+
+    /**
+     * 隐藏进度框
+     */
+    private void dissmissProgressDialog() {
+        if (progDialog != null) {
+            progDialog.dismiss();
+        }
     }
 
     @Override
-    public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
-
-    }
+    public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {}
 
     @Override
-    public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+    public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {}
 
-    }
+    @Override
+    public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {}
 
 
 }

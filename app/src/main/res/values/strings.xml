@@ -13,4 +13,6 @@
     <string name="drawer_close">Menu closed</string>
     <string name="Team">软件信息</string>
     <string name="action_github">github</string>
+
+    <string name="no_result">对不起，没有搜索到相关数据！</string>
 </resources>

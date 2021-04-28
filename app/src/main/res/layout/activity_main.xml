@@ -10,52 +10,111 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/md_app_bar_elevation"
-            android:minHeight="?attr/actionBarSize"
-            app:contentInsetStart="72dp"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            tools:ignore="UnusedAttribute" />
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="0dp"
+            android:orientation="vertical">
 
-        <com.amap.api.maps.MapView
-            android:id="@+id/map"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:elevation="@dimen/md_app_bar_elevation"
+                android:minHeight="?attr/actionBarSize"
+                app:contentInsetStart="72dp"
+                app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                tools:ignore="UnusedAttribute" />
+
+            <com.amap.api.maps.MapView
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/bottom_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+            android:layout_height="70dp"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/bg_bottom_bar"
+            android:gravity="center_vertical"
+            android:padding="5dp"
+            android:visibility="gone">
 
-    <com.heinrichreimersoftware.materialdrawer.DrawerView
-        android:id="@+id/drawer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true" />
+            <TextView
+                android:id="@+id/firstline"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginLeft="12dp"
+                android:singleLine="true"
+                android:textColor="#333333"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/secondline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/firstline"
+                android:layout_marginLeft="12dp"
+                android:gravity="right"
+                android:singleLine="true"
+                android:textColor="#999999"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/detail"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="详情"
+                    android:textColor="@color/blue"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:layout_width="7dp"
+                    android:layout_height="13dp"
+                    android:layout_marginLeft="4dp"
+                    android:background="@drawable/arrow_right_blue"
+                    android:gravity="center_vertical" />
+            </LinearLayout>
+        </RelativeLayout>
+
+    </RelativeLayout>
 
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/menu_grey"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="80dp"
         app:menu_colorNormal="#696969"
         app:menu_colorPressed="#696969"
         app:menu_colorRipple="#99FFFFFF"
-        android:paddingRight="10dp"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        fab:menu_labels_ellipsize="end"
-        fab:menu_labels_singleLine="true"
-        fab:menu_labels_position="right"
         fab:menu_backgroundColor="@android:color/transparent"
+        fab:menu_fab_label="模式切换"
         fab:menu_icon="@drawable/ic_fab"
-        fab:menu_fab_label="模式切换">
+        fab:menu_labels_ellipsize="end"
+        fab:menu_labels_position="right"
+        fab:menu_labels_singleLine="true">
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/night"
@@ -65,8 +124,8 @@
             app:fab_colorNormal="@color/gainsboro"
             app:fab_colorPressed="#696969"
             app:fab_colorRipple="#99FFFFFF"
-            fab:fab_size="mini"
-            fab:fab_label="夜间模式" />
+            fab:fab_label="夜间模式"
+            fab:fab_size="mini" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/satelite"
@@ -76,8 +135,8 @@
             app:fab_colorNormal="@color/gainsboro"
             app:fab_colorPressed="#696969"
             app:fab_colorRipple="#99FFFFFF"
-            fab:fab_size="mini"
-            fab:fab_label="卫星模式" />
+            fab:fab_label="卫星模式"
+            fab:fab_size="mini" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/navigation"
@@ -87,8 +146,8 @@
             app:fab_colorNormal="@color/gainsboro"
             app:fab_colorPressed="#696969"
             app:fab_colorRipple="#99FFFFFF"
-            fab:fab_size="mini"
-            fab:fab_label="导航模式" />
+            fab:fab_label="导航模式"
+            fab:fab_size="mini" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/base"
@@ -98,9 +157,16 @@
             app:fab_colorNormal="@color/gainsboro"
             app:fab_colorPressed="#696969"
             app:fab_colorRipple="#99FFFFFF"
-            fab:fab_size="mini"
-            fab:fab_label="矢量模式" />
+            fab:fab_label="矢量模式"
+            fab:fab_size="mini" />
 
     </com.github.clans.fab.FloatingActionMenu>
+
+    <com.heinrichreimersoftware.materialdrawer.DrawerView
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
