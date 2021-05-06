@@ -7,4 +7,11 @@
     <dimen name="title_text_size">15sp</dimen>
     <dimen name="poi_field_size">14sp</dimen>
 
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="set_padding">7dp</dimen>
+    <dimen name="text_btn_size">16sp</dimen>
+    <dimen name="text_size">10sp</dimen>
+    <dimen name="margin_button">15dp</dimen>
+
+
 </resources>

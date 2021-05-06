@@ -159,6 +159,16 @@
             app:fab_colorRipple="#99FFFFFF"
             fab:fab_label="矢量模式"
             fab:fab_size="mini" />
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/map_inside"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_house_in"
+            app:fab_colorNormal="@color/gainsboro"
+            app:fab_colorPressed="#696969"
+            app:fab_colorRipple="#99FFFFFF"
+            fab:fab_label="室内模式"
+            fab:fab_size="mini" />
 
     </com.github.clans.fab.FloatingActionMenu>
 

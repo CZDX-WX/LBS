@@ -22,7 +22,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.czdxwx.lbs.MainActivity;
 import com.czdxwx.lbs.R;
+
+import net.tsz.afinal.FinalDb;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText student_number;
     private EditText password;
+
     private Button btn_sign_up;
     private Button btn_sign_in;
     private TextView tv_forget;
@@ -66,22 +70,21 @@ public class LoginActivity extends AppCompatActivity {
 
         //隐藏标题栏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_login);
         student_number=findViewById(R.id.student_number);
         password=findViewById(R.id.password);
         btn_sign_up=findViewById(R.id.btn_sign_up);
+        //注册
         btn_sign_up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i=new Intent();
-                i.setAction("android.intent.action.test");
-                startActivity(i);
+
             }
         });
         btn_sign_in=findViewById(R.id.btn_sign_in);
+        //登录
         btn_sign_in.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

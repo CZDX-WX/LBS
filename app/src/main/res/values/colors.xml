@@ -9,9 +9,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- Teal 600 -->
-    <color name="color_primary">#696969</color>
+    <color name="color_primary">#333244</color>
     <!-- Teal 800 -->
-    <color name="color_primary_dark">#696969</color>
+    <color name="color_primary_dark">#292836</color>
     <!-- Cyan A200 -->
     <color name="color_accent">#18FFFF</color>
     <color name="pink">#ffc0cb</color>
@@ -309,4 +309,20 @@
     <color name="phone_bg">#f6f6f6</color>
 
     <color name="textInputLayout">#96ffffff</color>
+
+    <color name="new_text_color">#555771</color>
+    <color name="gray_color">#4b4b58</color>
+    <color name="bg">#F0F0F0</color>
+    <color name="spinner_bg">#333244</color>
+    <color name="item_bg">#FFFFFF</color>
+    <color name="hard_color">#48495f</color>
+    <color name="txt_color">#48495F</color>
+
+    <color name="colorPrimary">#333244</color>
+    <color name="colorPrimaryDark">#292836</color>
+
+    <color name="color_light_blue">#00DDB6</color>
+    <color name="white_text_color">#F0F0F0</color>
+    <color name="clickspan_color">#00ddb6</color>
+    <color name="dull_blue">#3B4BBF</color>
 </resources>
