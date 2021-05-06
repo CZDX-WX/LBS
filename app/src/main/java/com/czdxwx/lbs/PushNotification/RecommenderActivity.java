@@ -6,11 +6,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.ajguan.library.EasyRefreshLayout;
+import com.ajguan.library.LoadModel;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.czdxwx.lbs.PushNews.NewsActivity;
@@ -60,6 +63,30 @@ public class RecommenderActivity extends AppCompatActivity {
         }
         initMenu();
         initView();
+        EasyRefreshLayout refreshLayout=findViewById(R.id.easylayout);
+        refreshLayout.addEasyEvent(new EasyRefreshLayout.EasyEvent() {
+
+            @Override
+            public void onLoadMore() {
+
+            }
+
+            @Override
+            public void onRefreshing() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataList = db.findAll(Data.class);
+                        if (dataList.isEmpty()) {
+                            dataAdapter.setEmptyView(R.layout.empty_data);
+                        }
+                        dataAdapter.setList(dataList);
+                        refreshLayout.refreshComplete();
+                    }
+                }, 1000);
+            }
+        });
+        refreshLayout.setLoadMoreModel(LoadModel.NONE);
     }
 
     private void initView() {

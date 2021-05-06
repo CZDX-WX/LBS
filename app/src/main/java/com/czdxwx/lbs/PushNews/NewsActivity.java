@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
@@ -19,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ajguan.library.EasyRefreshLayout;
+import com.ajguan.library.LoadModel;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.czdxwx.lbs.R;
@@ -31,6 +34,7 @@ import net.tsz.afinal.FinalDb;
 import net.tsz.afinal.db.sqlite.DbModel;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
@@ -65,6 +69,31 @@ public class NewsActivity extends AppCompatActivity {
         }
         initMenu();
         initView();
+
+        EasyRefreshLayout refreshLayout=findViewById(R.id.easylayout);
+        refreshLayout.addEasyEvent(new EasyRefreshLayout.EasyEvent() {
+
+            @Override
+            public void onLoadMore() {
+
+            }
+
+            @Override
+            public void onRefreshing() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        newsList = db.findAll(News.class);
+                        if (newsList.isEmpty()) {
+                            newsAdapter.setEmptyView(R.layout.empty_data);
+                        }
+                        newsAdapter.setList(newsList);
+                        refreshLayout.refreshComplete();
+                    }
+                }, 1000);
+            }
+        });
+        refreshLayout.setLoadMoreModel(LoadModel.NONE);
     }
 
     private void initView() {
