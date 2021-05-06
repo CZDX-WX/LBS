@@ -5,13 +5,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.provider.Settings;
 import android.view.View;
 import android.view.Window;
@@ -24,6 +27,7 @@ import android.widget.Toast;
 
 import com.czdxwx.lbs.MainActivity;
 import com.czdxwx.lbs.R;
+import com.xiaomi.mipush.sdk.MiPushClient;
 
 import net.tsz.afinal.FinalDb;
 
@@ -49,10 +53,37 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tv_forget;
     private int count = 0;
 
+
+    // user your appid the key.
+    private static final String APP_ID = "2882303761519894315";
+    // user your appid the key.
+    private static final String APP_KEY = "5391989490315";
+
+
+    //判断是否应该注册
+    private boolean shouldInit() {
+        ActivityManager am = ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE));
+        List<ActivityManager.RunningAppProcessInfo> processInfos = am.getRunningAppProcesses();
+        String mainProcessName = getPackageName();
+        int myPid = Process.myPid();
+        for (ActivityManager.RunningAppProcessInfo info : processInfos) {
+            if (info.pid == myPid && mainProcessName.equals(info.processName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 注册push服务，注册成功后会向MessageReceiver发送广播
+        // 可以从MessageReceiver的onCommandResult方法中MiPushCommandMessage对象参数中获取注册信息
+        if (shouldInit()) {
+            MiPushClient.registerPush(this, APP_ID, APP_KEY);
+        }
 
         //权限
         if (Build.VERSION.SDK_INT > 28

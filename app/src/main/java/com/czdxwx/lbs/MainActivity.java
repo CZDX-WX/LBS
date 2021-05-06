@@ -64,6 +64,7 @@ import com.amap.api.services.route.RouteSearch;
 import com.amap.api.services.route.WalkPath;
 import com.amap.api.services.route.WalkRouteResult;
 import com.czdxwx.lbs.PushNotification.RecommenderActivity;
+import com.czdxwx.lbs.logActivity.InformationActivity;
 import com.czdxwx.lbs.overlay.WalkRouteOverlay;
 import com.czdxwx.lbs.route.WalkRouteDetailActivity;
 import com.czdxwx.lbs.utils.AMapUtil;
@@ -108,11 +109,6 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     //小米推送订阅主题
     private String topic = "新闻";
 
-
-    // user your appid the key.
-    private static final String APP_ID = "2882303761519894315";
-    // user your appid the key.
-    private static final String APP_KEY = "5391989490315";
 
     /*
     ***********悬浮按钮布局***************
@@ -178,8 +174,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //连接SQLite Studio
-        SQLiteStudioService.instance().start(this);
+
         //建库
         db = FinalDb.create(this, "LBS");
 
@@ -201,11 +196,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     }
 
     private void initPush() {
-        // 注册push服务，注册成功后会向MessageReceiver发送广播
-        // 可以从MessageReceiver的onCommandResult方法中MiPushCommandMessage对象参数中获取注册信息
-        if (shouldInit()) {
-            MiPushClient.registerPush(this, APP_ID, APP_KEY);
-        }
+
         //开发者可以为指定用户设置别名，然后给这个别名推送消息，效果等同于给RegId推送消息。
         //说明：每个App单台设备可设置的alias个数为30个，如果超过了对应上限数，则新设置的alias会覆盖最早设置的alias。
         MiPushClient.setAlias(this, alias, null);
@@ -215,19 +206,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
 
     }
 
-    //判断是否应该注册
-    private boolean shouldInit() {
-        ActivityManager am = ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE));
-        List<ActivityManager.RunningAppProcessInfo> processInfos = am.getRunningAppProcesses();
-        String mainProcessName = getPackageName();
-        int myPid = Process.myPid();
-        for (ActivityManager.RunningAppProcessInfo info : processInfos) {
-            if (info.pid == myPid && mainProcessName.equals(info.processName)) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     //初始化抽屉
     private void initDrawer() {

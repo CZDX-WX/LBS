@@ -1,15 +1,22 @@
 package com.czdxwx.lbs.PushNews;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -21,6 +28,7 @@ import com.kyleduo.switchbutton.SwitchButton;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
 import net.tsz.afinal.FinalDb;
+import net.tsz.afinal.db.sqlite.DbModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,12 +80,6 @@ public class NewsActivity extends AppCompatActivity {
     private void initAdapter() {
         newsAdapter = new NewsAdapter(newsList);
         newsAdapter.setAnimationEnable(true);
-        newsAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
-
-            }
-        });
         //动画效果
         //AlphaIn:
         //ScaleIn:
@@ -87,6 +89,7 @@ public class NewsActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(newsAdapter);
         //取消动画只执行一次
         newsAdapter.setAnimationFirstOnly(false);
+
     }
 
     private void initMenu() {

@@ -13,8 +13,11 @@ import com.czdxwx.lbs.logActivity.InformationActivity;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.Logger;
 
+import net.tsz.afinal.FinalDb;
+
 
 public class MyApplication extends Application {
+
     //上下文
     private static Context context;
 

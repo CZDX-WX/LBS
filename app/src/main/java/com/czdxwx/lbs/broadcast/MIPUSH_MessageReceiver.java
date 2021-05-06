@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.czdxwx.lbs.MainActivity;
 import com.czdxwx.lbs.MyApplication;
 import com.czdxwx.lbs.PushNotification.RecommenderActivity;
 import com.czdxwx.lbs.R;
@@ -18,6 +20,9 @@ import com.xiaomi.mipush.sdk.MiPushClient;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
 import com.xiaomi.mipush.sdk.MiPushMessage;
 import com.xiaomi.mipush.sdk.PushMessageReceiver;
+
+import net.tsz.afinal.FinalDb;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +42,7 @@ import static com.czdxwx.lbs.MyApplication.TAG;
     private String mAccount;
     private String mStartTime;
     private String mEndTime;
+    private FinalDb db= MainActivity.db;
 
         @Override
         //接受服务器推送的透传消息，消息封装在MiPUSHMessage类中
@@ -55,7 +61,7 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                     news.setNewsText(message.getExtra().get("副标题"));
                     news.setContent(message.getContent());
                     news.setDate(getSimpleDate());
-                    NewsActivity.db.save(news);
+                    db.save(news);
                 }
             } else if (!TextUtils.isEmpty(message.getAlias())) {
                 mAlias = message.getAlias();
@@ -65,14 +71,14 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                     data.setTweetText(message.getExtra().get("副标题"));
                     data.setContent(message.getContent());
                     data.setDate(getSimpleDate());
-                    RecommenderActivity.db.save(data);
+                    db.save(data);
                 }
             }
 
-            //记录到日志中
-            Message msg = Message.obtain();
-            msg.obj = log;
-            MyApplication.getHandler().sendMessage(msg);
+//            //记录到日志中
+//            Message msg = Message.obtain();
+//            msg.obj = log;
+//            MyApplication.getHandler().sendMessage(msg);
         }
 
 
@@ -90,7 +96,7 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                 mTopic = message.getTopic();
                 if(mTopic.equals("新闻")){
                     Intent intent=new Intent();
-                    intent.setAction("android.intent.action.notification");
+                    intent.setAction("android.intent.action.news");
                     //广播里跳转需加上这句,否则报异常 android.util.AndroidRuntimeException
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
@@ -106,14 +112,14 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                 }
             }
 
-            Message msg = Message.obtain();
-            //isNotified表示消息是否通过通知栏传给app的。
-            // 如果为true，表示消息在通知栏出过通知；
-            // 如果为false，表示消息是直接传给app的，没有弹出过通知。
-            if (message.isNotified()) {
-                msg.obj = log;
-            }
-            MyApplication.getHandler().sendMessage(msg);
+//            Message msg = Message.obtain();
+//            //isNotified表示消息是否通过通知栏传给app的。
+//            // 如果为true，表示消息在通知栏出过通知；
+//            // 如果为false，表示消息是直接传给app的，没有弹出过通知。
+//            if (message.isNotified()) {
+//                msg.obj = log;
+//            }
+//            MyApplication.getHandler().sendMessage(msg);
         }
 
 
@@ -136,7 +142,7 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                     news.setNewsText(message.getExtra().get("副标题"));
                     news.setContent(message.getContent());
                     news.setDate(getSimpleDate());
-                    NewsActivity.db.save(news);
+                    db.save(news);
                 }
             } else if (!TextUtils.isEmpty(message.getAlias())) {
                 mAlias = message.getAlias();
@@ -146,13 +152,13 @@ import static com.czdxwx.lbs.MyApplication.TAG;
                     data.setTweetText(message.getExtra().get("副标题"));
                     data.setContent(message.getContent());
                     data.setDate(getSimpleDate());
-                    RecommenderActivity.db.save(data);
+                    db.save(data);
                 }
             }
 
-            Message msg = Message.obtain();
-            msg.obj = log;
-            MyApplication.getHandler().sendMessage(msg);
+//            Message msg = Message.obtain();
+//            msg.obj = log;
+//            MyApplication.getHandler().sendMessage(msg);
         }
 
 
@@ -237,9 +243,9 @@ import static com.czdxwx.lbs.MyApplication.TAG;
             }
             InformationActivity.logList.add(0, getSimpleDate() + "    " + log);
 
-            Message msg = Message.obtain();
-            msg.obj = log;
-            MyApplication.getHandler().sendMessage(msg);
+//            Message msg = Message.obtain();
+//            msg.obj = log;
+//            MyApplication.getHandler().sendMessage(msg);
         }
 
     @Override
@@ -264,9 +270,9 @@ import static com.czdxwx.lbs.MyApplication.TAG;
             log = message.getReason();
         }
 
-        Message msg = Message.obtain();
-        msg.obj = log;
-        MyApplication.getHandler().sendMessage(msg);
+//        Message msg = Message.obtain();
+//        msg.obj = log;
+//        MyApplication.getHandler().sendMessage(msg);
     }
 
     @SuppressLint("SimpleDateFormat")
