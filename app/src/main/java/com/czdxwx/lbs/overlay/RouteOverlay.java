@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RouteOverlay {
+
 	protected List<Marker> stationMarkers = new ArrayList<Marker>();
+	//轨迹线性表
 	protected List<Polyline> allPolyLines = new ArrayList<Polyline>();
 	protected Marker startMarker;
 	protected Marker endMarker;

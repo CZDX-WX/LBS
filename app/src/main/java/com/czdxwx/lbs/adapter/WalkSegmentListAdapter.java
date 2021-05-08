@@ -53,7 +53,7 @@ public class WalkSegmentListAdapter extends BaseAdapter {
 		ViewHolder holder = null;
 		if (convertView == null) {
 			holder = new ViewHolder();
-			convertView = View.inflate(mContext, R.layout.item_bus_segment,
+			convertView = View.inflate(mContext, R.layout.item_segment,
 					null);
 			holder.lineName = (TextView) convertView
 					.findViewById(R.id.bus_line_name);

@@ -40,6 +40,8 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
     选择器
      */
     private OptionsPickerView pvCustomOptions;
+
+    //选择器填充数据
     private ArrayList<schoolbean> schoolItem = new ArrayList<>();
     private ArrayList<buildingbean> buildingItem = new ArrayList<>();
     private ArrayList<weekbean> weekItem = new ArrayList<>();
@@ -50,6 +52,7 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //设置状态栏颜色
         getWindow().setStatusBarColor(getResources().getColor(R.color.color_primary_dark));
         setContentView(R.layout.activity_empty_classroom_enquiry);
 
@@ -108,6 +111,7 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
 
     @Override
     public void onClick(View v) {
+        //判断：不是点击按钮全是选择器
         if (v.getId() == R.id.btn_search) {
             Intent intent = new Intent();
             Bundle bundle = new Bundle();
@@ -116,7 +120,9 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
             bundle.putString("week", week.getText().toString());
             bundle.putString("weekday", weekday.getText().toString());
             bundle.putString("number", number.getText().toString());
+            //带个捆绑走
             intent.putExtras(bundle);
+            //隐式跳转
             intent.setAction("android.intent.action.roomList");
             startActivity(intent);
         } else {
@@ -126,7 +132,10 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
         }
     }
 
-    //初始化选项选择器
+    /**
+     * view:触发点击事件的视图
+    初始化选项选择器
+     */
     private void initCustomOptionPicker(View view) {
         temp = (TextView) view;
         pvCustomOptions = new OptionsPickerBuilder(this, new OnOptionsSelectListener() {
@@ -134,6 +143,7 @@ public class EmptyClassroomEnquiryActivity extends AppCompatActivity implements 
             public void onOptionsSelect(int options1, int option2, int options3, View v) {
                 //返回的分别是三个级别的选中位置
                 String tx = "";
+                //判断一下是哪个文本视图触发了，从而转变相应的数据
                 if (view.getId() == R.id.school) {
                     tx = schoolItem.get(options1).getPickerViewText();
                 } else if (view.getId() == R.id.building) {

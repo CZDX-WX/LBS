@@ -93,6 +93,7 @@ public class NewsActivity extends AppCompatActivity {
                 }, 1000);
             }
         });
+        //取消上拉加载更多
         refreshLayout.setLoadMoreModel(LoadModel.NONE);
     }
 

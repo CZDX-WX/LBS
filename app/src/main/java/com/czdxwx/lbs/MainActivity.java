@@ -100,39 +100,11 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     //Logcat TAG
     private String TAG = "test";
 
-    /*
-**************小米推送*****************
- */
 
-    //小米推送别名
-    private String alias = "韦欣";
-    //小米推送订阅主题
-    private String topic = "新闻";
-
-
-    /*
-    ***********悬浮按钮布局***************
-     */
-
-    //悬浮框按钮
-    private FloatingActionMenu menuGrey;
-    private FloatingActionButton fab1;
-    private FloatingActionButton fab2;
-    private FloatingActionButton fab3;
-    private FloatingActionButton fab4;
-    private FloatingActionButton fab5;
-    //动画处理器
-    private final Handler mUiHandler = new Handler();
-    //toolbar
-    private Toolbar toolbar;
-    //抽屉布局
-    private DrawerView drawer;
-    private ActionBarDrawerToggle drawerToggle;
-
-    /*
-    *********************地图******************
-     */
-
+/**
+*********************地图******************
+*/
+    //地图视图容器
     private MapView mapView;
     //地图
     private AMap aMap;
@@ -140,16 +112,18 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     private Context mContext;
     //定位
     private MyLocationStyle myLocationStyle;
+
     // 西南坐标(纬度，经度)
     private static final LatLng southwestLatLng = new LatLng(31.678003, 119.943828);
     // 东北坐标
     private static final LatLng northeastLatLng = new LatLng(31.690411, 119.968637);
 
 
-    /*
+    /**
     路径规划
      */
 
+    //底部布局
     private RelativeLayout mBottomLayout;
     //底部文字描述
     private TextView mRotueTimeDes, mRouteDetailDes;
@@ -168,12 +142,44 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     // 搜索时进度条
     private ProgressDialog progDialog = null;
 
+ /**
+**************小米推送*****************
+ */
+
+    //小米推送别名
+    private String alias = "韦欣";
+    //小米推送订阅主题
+    private String topic = "新闻";
+
+
+/**
+***********悬浮按钮布局***************
+*/
+
+    //悬浮框按钮
+    private FloatingActionMenu menuGrey;
+    //五个子按钮
+    private FloatingActionButton fab1;
+    private FloatingActionButton fab2;
+    private FloatingActionButton fab3;
+    private FloatingActionButton fab4;
+    private FloatingActionButton fab5;
+    //动画处理器：延迟按钮展示
+    private final Handler mUiHandler = new Handler();
+    //toolbar
+    private Toolbar toolbar;
+    //抽屉布局
+    private DrawerView drawer;
+    //抽屉开关
+    private ActionBarDrawerToggle drawerToggle;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         //建库
         db = FinalDb.create(this, "LBS");
@@ -328,10 +334,11 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         fab3 = findViewById(R.id.navigation);
         fab4 = findViewById(R.id.base);
         fab5=findViewById(R.id.map_inside);
-        //点击外面关闭
+        //点击按钮布局外外面自动关闭
         menuGrey.setClosedOnTouchOutside(true);
-        //默认隐藏
+        //取消默认隐藏
         menuGrey.hideMenuButton(false);
+
         //夜间模式
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -368,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
 
             }
         });
-        //延迟展示fab
+        //延迟1秒展示fab
         mUiHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -379,12 +386,14 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
 
 
     @Override
+    //填充选项菜单布局
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
+    //选项菜单选择事件
     public boolean onOptionsItemSelected(MenuItem item) {
         //抽屉按钮
         if (drawerToggle.onOptionsItemSelected(item)) {
@@ -411,9 +420,10 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
 
 
     @Override
-    //activity加载完全后的回调函数
+    //activity加载完全后执行的回调函数
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        //同步抽屉的状态
         drawerToggle.syncState();
     }
 
@@ -424,6 +434,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     private void initMap() {
         if (aMap == null) {
             aMap = mapView.getMap();
+            //注册监听器
             registerListener();
             //定位
             mRouteSearch = new RouteSearch(this);
@@ -466,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     }
 
     @Override
-    //回调
+    //位置改变时回调
     public void onMyLocationChange(Location location) {
         mStartPoint = new LatLonPoint(location.getLatitude(), location.getLongitude());
         // 定位回调监听
@@ -539,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
     }
 
     @Override
-    //点击后开始导航
+    //点击后展示小窗口
     public boolean onMarkerClick(Marker arg0) {
         marker.showInfoWindow();
         return false;
@@ -562,6 +573,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
                 .draggable(true);
         marker = map.addMarker(markerOptions);
+        //添加maker动画
         startGrowAnimation();
     }
 
@@ -581,10 +593,13 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         }
     }
 
+
     /**
      * 开始搜索路径规划方案
      */
     public void searchRouteResult(int routeType, int mode) {
+
+        //判断起点终点
         if (mStartPoint == null) {
             ToastUtil.show(mContext, "起点未设置");
             return;
@@ -593,6 +608,7 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
             ToastUtil.show(mContext, "终点未设置");
         }
 
+        //展示等待进度对话框
         showProgressDialog();
 
         final RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(mStartPoint, mEndPoint);
@@ -610,38 +626,47 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
      */
     @Override
     public void onWalkRouteSearched(WalkRouteResult result, int errorCode) {
+        //隐藏进度条
         dissmissProgressDialog();
+
         aMap.clear();// 清理地图上的所有覆盖物
+
+        //判断返回码
         if (errorCode == AMapException.CODE_AMAP_SUCCESS) {
             if (result != null && result.getPaths() != null) {
                 if (result.getPaths().size() > 0) {
                     mWalkRouteResult = result;
-                    final WalkPath walkPath = mWalkRouteResult.getPaths()
-                            .get(0);
+                    //获取多种规划路径的其中一条
+                    final WalkPath walkPath = mWalkRouteResult.getPaths().get(0);
                     if (walkPath == null) {
                         return;
                     }
+                    //新建步行规划绘制层
                     WalkRouteOverlay walkRouteOverlay = new WalkRouteOverlay(
                             this, aMap, walkPath,
                             mWalkRouteResult.getStartPos(),
                             mWalkRouteResult.getTargetPos());
                     walkRouteOverlay.removeFromMap();
+
                     walkRouteOverlay.addToMap();
+
                     walkRouteOverlay.zoomToSpan();
+                    //底部详细布局可视化
                     mBottomLayout.setVisibility(View.VISIBLE);
+
                     int dis = (int) walkPath.getDistance();
                     int dur = (int) walkPath.getDuration();
+                    //封装好的地图工具 将int转化为人能看懂的数据
                     String des = AMapUtil.getFriendlyTime(dur) + "(" + AMapUtil.getFriendlyLength(dis) + ")";
                     mRotueTimeDes.setText(des);
                     mRouteDetailDes.setVisibility(View.GONE);
+                    //点击详情，进入新页面
                     mBottomLayout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(mContext,
-                                    WalkRouteDetailActivity.class);
+                            Intent intent = new Intent(mContext, WalkRouteDetailActivity.class);
                             intent.putExtra("walk_path", walkPath);
-                            intent.putExtra("walk_result",
-                                    mWalkRouteResult);
+                            intent.putExtra("walk_result", mWalkRouteResult);
                             startActivity(intent);
                         }
                     });
@@ -665,10 +690,15 @@ public class MainActivity extends AppCompatActivity implements AMap.OnMyLocation
         if (progDialog == null) {
             progDialog = new ProgressDialog(this);
         }
+        //进度条样式：不确定的圆形滚动条
         progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        //设置进度不明确：即不会实时更新进度
         progDialog.setIndeterminate(false);
+        //设置ProgressDialog 是否可以按返回键取消；
         progDialog.setCancelable(true);
+        //setMessage：设置提示信息
         progDialog.setMessage("正在搜索");
+        //展示
         progDialog.show();
     }
 
