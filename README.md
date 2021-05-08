@@ -1,7 +1,7 @@
 # LBS
 1.高德地图引入so库时：targetSdkVersion<=28，否则报错。  
 
-2. 抽屉布局必须放在最后渲染，否则item点击事件不生效。  
+2.抽屉布局必须放在最后渲染，否则item点击事件不生效。  
 
 3.矢量图来源：
 [阿里巴巴矢量图标库](https://www.iconfont.cn/home/index?spm=a313x.7781069.1998910419.2)  
