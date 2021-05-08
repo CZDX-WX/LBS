@@ -11,10 +11,10 @@
 [2.小米推送sdk官方文档](https://dev.mi.com/console/doc/detail?pId=41)  
 
 5.开源项目：  
-    [1.brvah适配器](http://www.recyclerview.org/)
-    [2.抽屉布局](https://github.com/HeinrichReimer/material-drawer)
-    [3.悬浮按钮](https://github.com/Clans/FloatingActionButton)
-    [4.afinal框架](https://github.com/yangfuhai/afinal)
+    [1.brvah适配器](http://www.recyclerview.org/)  
+    [2.抽屉布局](https://github.com/HeinrichReimer/material-drawer)  
+    [3.悬浮按钮](https://github.com/Clans/FloatingActionButton)  
+    [4.afinal框架](https://github.com/yangfuhai/afinal)  
     [5.pickerView](https://codechina.csdn.net/mirrors/bigkoo/android-pickerview?utm_source=csdn_github_accelerator)
 
     
